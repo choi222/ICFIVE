@@ -1,0 +1,483 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.spring.main.dao.BoardInterface">
+
+	<!-- 아이디 중복 체크 -->
+	<select id="overlay" resultType="String">
+		SELECT user_id FROM members WHERE user_id = #{param1}
+	</select>
+
+	<!-- 중복 체크 -->
+	<select id="overlays" resultType="String">
+		SELECT subject FROM pro_bbs WHERE subject = #{param1}
+	</select>
+	
+	<!--중복 체크
+	<select id="pro_overlay" resultType="String">
+		SELECT subject FROM pro_bbs WHERE subject = #{param1}
+	</select> -->
+	
+	<!-- 회원 가입 -->
+	<insert id="join" parameterType="com.spring.main.dto.MemberDto">
+		INSERT INTO members(user_id, user_pw, user_name,user_nickname, gender,birth,email, phone, address, con,reg)
+			VALUES(#{user_id},#{user_pw},#{user_name},0,#{gender},#{birth},#{email},#{phone},#{address},0,sysdate)
+	</insert>
+	
+	<!-- 암호화된 로그인 처리 -->
+	<select id="securityLogin" resultType="String">
+		SELECT user_pw FROM members WHERE user_id = #{param1}
+	</select>
+ 	
+ 	<!-- 비밀번호 찾기 -->
+	<select id="mailSending" resultType="String">
+		select user_pw from members where user_id=#{param1} and user_name=#{param2} and birth=#{param3} and email=#{param4}
+	</select>
+	
+	<!-- 회원정보 보기 -->
+	<select id="detailForm" resultType="com.spring.main.dto.MemberDto">
+		SELECT * FROM members where user_id=#{param1}
+	</select>
+	
+	<!-- 이름 추출 -->
+	<select id="nameFind" resultType="String">
+		SELECT user_name FROM members where user_id=#{param1}
+	</select>
+	
+	<!-- 수정페이지 -->
+	<select id="alterForm" resultType="com.spring.main.dto.MemberDto">
+		SELECT * FROM members WHERE user_id = #{param1}
+	</select>
+	
+	<!-- 회원탈퇴 페이지 -->
+	<select id="memberdelete" resultType="com.spring.main.dto.MemberDto">
+		SELECT * FROM members WHERE user_id = #{param1}
+	</select>
+	
+	<!-- 회원탈퇴 -->
+	<delete id="delete">
+		DELETE FROM members WHERE user_id =#{param1}
+	</delete>
+	
+
+	<!-- <select id="overnickname" resultType="String">
+		SELECT user_nickname FROM members WHERE user_nickname = #{param1}
+	</select> --> 
+	
+	<!-- 수정하기 -->
+	<update id="alter">
+		UPDATE members SET user_name =#{param2}, birth=#{param3}, email=#{param4}, phone=#{param5}, address=#{param6}, filename=#{param7}, newfile=#{param8} WHERE user_id = #{param1}
+	</update>
+	
+	<!-- 비밀번호 변경페이지 이동 -->
+	<select id="pwmodify" resultType="com.spring.main.dto.MemberDto">
+		SELECT * FROM members WHERE user_id = #{param1}
+	</select>
+	
+	<!-- 비밀번호 변경 -->
+	<update id="modify">
+		UPDATE members SET user_pw=#{param2} WHERE user_id=#{param1}
+	</update>
+	
+	<!-- 비밀번호 찾기 -->
+	<select id="findpw" resultType="String">
+		SELECT email FROM members WHERE user_id = #{param1} AND user_name = #{param2} AND email = #{param3} AND birth = #{param4}
+	</select>
+	<update id="changepw">
+		UPDATE members SET user_pw = #{param1} WHERE user_id=#{param2}
+	</update>
+	
+	<!-- 아이디 찾기 -->
+	<select id="findid" resultType="String">
+		SELECT user_id FROM members WHERE user_name = #{param1} AND email = #{param2} AND birth = #{param3}
+	</select>
+	
+	<!-- 프로젝트이름 리스트  -->
+	<select id="list" resultType="com.spring.main.dto.ProjectDto">
+		SELECT t.pro_name, t.seq, p.user_id,p.finish, p.daystart, p.dayend from team t, pro_bbs p
+		 WHERE t.seq=p.seq AND t.user_id = #{param1} ORDER BY t.seq DESC
+	</select>
+	
+	<!-- 상세보기  -->
+	<select id="detail" resultType="com.spring.main.dto.ProjectDto">
+		SELECT * from project WHERE pro_name = #{param1} 
+	</select>
+	
+	<!-- 새프로젝트 만들기 -->
+	<insert id="pro_write" 
+		parameterType="com.spring.main.dto.BoardBean"
+		useGeneratedKeys="true"
+		keyProperty="seq" keyColumn="seq">
+		
+		INSERT INTO pro_bbs(seq, user_id, subject, teamname, content,daystart,dayend) VALUES(seq_pro_bbs.NEXTVAL, #{user_id}, #{subject}, #{teamname}, #{content},#{startday},#{endday})
+		
+	</insert>
+	
+	<!-- 파일 등록 -->
+	<insert id="pro_writeFile">
+		INSERT INTO pro_file(fileIdx, oldFile, newFile, seq) VALUES(seq_file.NEXTVAL,#{param1},#{param2},#{param3})
+	</insert>
+	
+	<!--  글 삭제  -->
+	<delete id="pro_del">
+		DELETE FROM pro_bbs WHERE seq = #{param1}
+	</delete>
+	
+	<!--  삭제할 파일 추출  -->
+	<select id="pro_delFileName" resultType="String">
+		SELECT newFile FROM pro_file WHERE seq=#{param1}
+	</select>
+	
+	<!-- 파일 삭제 내용 반영 -->
+	<delete id="pro_fileUpdate" parameterType="String">
+		<if test="value != null">
+			DELETE FROM pro_file WHERE newFile = #{value}
+		</if>
+	</delete>
+	
+	<!-- 프로젝트 상세보기 -->
+	<select id="pro_detail" resultType="com.spring.main.dto.BoardBean">
+		SELECT * FROM pro_bbs WHERE seq=#{param1}
+	</select>
+	
+	<!--  프로젝트 파일 목록 가져오기  -->
+	<select id="pro_fileList" resultType="com.spring.main.dto.FilesBean">
+		SELECT * FROM pro_file WHERE seq = #{param1}
+	</select>
+	
+	<!-- 프로젝트이름 리스트  -->
+	<select id="list2" resultType="com.spring.main.dto.ProjectDto">
+		SELECT * from pro_bbs WHERE subject = #{param1}
+	</select>
+	
+	<!-- 팀원이름 -->
+	<select id="team_detail" resultType="com.spring.main.dto.TeamDto">
+		select * from TEAM WHERE seq= #{param1}
+	</select>
+	
+	<!-- 프로젝트수정 -->
+	<update id="pro_update">
+		UPDATE pro_bbs SET subject = #{param1}, content = #{param2}
+		 WHERE seq=#{param3}
+	</update>
+	
+	<!--  프로젝트파일다운로드  -->
+	<select id="pro_downloadName" resultType="String">
+		SELECT oldFile FROM pro_file WHERE newFile=#{param1}
+	</select>
+	
+	<!--  초대하기  -->
+	<select id="pro_invite" resultType="com.spring.main.dto.MemberDto">
+		SELECT * FROM members WHERE user_id like #{param1} ORDER BY USER_NAME asc
+	</select>
+	
+	<!-- 초대하기2  -->
+	<select id="pro_invite2" resultType="com.spring.main.dto.ProjectDto">
+		SELECT * FROM pro_bbs WHERE subject=#{param1}
+	</select>
+	
+	<!-- 초대하기3 -->
+	<insert id="pro_invite3">
+		INSERT INTO team(name,user_id,seq,pro_name)
+			VALUES(#{param1},#{param2},#{param3},#{param4})
+	</insert>
+	
+	<!--  초대하기4  -->
+	<select id="pro_invite4" resultType="com.spring.main.dto.MemberDto">
+		SELECT * FROM members ORDER BY USER_NAME asc
+	</select>
+	
+	<!-- 초대하기중복검사 -->
+	<select id="enter" resultType="com.spring.main.dto.TeamDto">
+		SELECT user_id FROM team WHERE user_id=#{param1} AND pro_name =#{param2}
+	</select>
+	
+	<!-- 이름달고 프로젝트 폼으로 이동 -->
+	<select id="pro_writeForm" resultType="com.spring.main.dto.MemberDto">
+		SELECT user_name FROM members WHERE user_id=#{param1}
+	</select>
+	
+	<!-- 글작성시 팀네임넣기 -->
+	<insert id="pro_writeInvite">
+		<selectKey resultType="int" keyProperty="seq" order="BEFORE">
+			SELECT MAX(seq) FROM pro_bbs
+		</selectKey>
+		INSERT INTO team(name,user_id,pro_name,seq)
+			VALUES(#{param1},#{param2},#{param3},#{seq})
+	</insert>
+	
+	<!--  프로젝트 탈퇴  -->
+	<delete id="pro_teamdel">
+		DELETE FROM team WHERE user_id = #{param1} AND seq=#{param2}
+	</delete>
+
+<!--일일주간보고게시판 ==================================================== -->
+<!-- 일일.주간 보고삭제할 파일 추출  -->
+	<select id="rptdelFileName" resultType="String">
+		SELECT newFile FROM report_file WHERE report_seq=#{param1}
+	</select>
+	
+	<!-- 일일,주간 보고 게시판 리스트 불러오기 -->
+	<select id="rptlistCall" resultType="com.spring.main.dto.RptBoardDto">
+		SELECT report_seq, subject, user_id, reg_date, pro_name 
+		FROM (
+		SELECT report_seq, subject, user_id, reg_date, pro_name, 
+		ROW_NUMBER() OVER(ORDER BY report_seq DESC) AS rnum 
+		FROM report_bbs) 
+		WHERE rnum BETWEEN #{param1} AND #{param2} AND pro_name= #{param3}
+	</select>
+	
+	<!-- 일일,주간 보고 게시판 상세보기  -->
+	<select id="rptdetail" resultType="com.spring.main.dto.RptBoardDto">
+		SELECT * from report_bbs WHERE report_seq = #{param1} 
+	</select>
+	
+	<!-- 전체  게시물 수 -->
+	<select id="allCount" resultType="Integer">
+		SELECT COUNT(*) FROM report_bbs
+	</select>
+	
+	<!-- 프로네임뽑아내기  -->
+	<select id="detail2" resultType="com.spring.main.dto.ProjectDto">
+		SELECT * from pro_bbs WHERE seq = #{param1} 
+	</select>
+	
+	<!-- 파일 목록 가져오기 -->
+	<select id="fileList" resultType="com.spring.main.dto.FilesBean">
+		SELECT * FROM report_file WHERE report_seq = #{param1}
+	</select>
+	
+	<!-- 일일,주간 보고 게시판 수정 -->
+	<update id="rptupdate">
+		UPDATE report_bbs SET subject = #{param1}, content = #{param2} WHERE report_seq = #{param3}
+	</update>
+	
+	<!--  글 삭제  -->
+	<delete id="rptdel">
+		DELETE FROM report_bbs WHERE report_seq = #{param1} AND user_id=#{param2}
+	</delete>
+	
+	<!-- 일일,주간 보고 게시글 파일 등록 -->
+	<insert id="rptWriteFile">
+		INSERT INTO report_file(file_Idx, oldFile, newFile, report_seq) 
+			VALUES(seq_report_fileidx.NEXTVAL, #{param1}, #{param2}, #{param3})
+	</insert>
+	
+	<!-- 일일,주간 보고 게시글 쓰기 -->
+	<insert id="rptWrite"
+		parameterType="com.spring.main.dto.RptBoardDto"
+		useGeneratedKeys="true"
+		keyProperty="report_seq" keyColumn="report_seq">
+		
+		INSERT INTO report_bbs(report_seq, user_id, pro_name, subject, content, seq) 
+			VALUES(seq_report_bbs.NEXTVAL, #{user_id}, #{pro_name}, #{subject}, #{content}, #{seq})
+	
+	</insert>
+	
+	<!--  일일,주간 파일다운로드  -->
+	<select id="rpt_downloadName" resultType="String">
+		SELECT oldFile FROM report_file WHERE newFile=#{param1}
+	</select>
+	
+	<!--산출물 및 차트 ======================================================== -->
+	
+	<!-- 산출물 글쓰기 -->
+	<insert id="write"> INSERT INTO up_bbs(seq,user_id,subject,content,fileName,newFile) VALUES(seq_up_bbs.NEXTVAL,#{param1},#{param2},#{param3},#{param4},#{param5}) </insert>
+	
+	<!-- 전체  게시물 수 -->
+	<select id="outputallCount" resultType="Integer">
+		SELECT COUNT(*) FROM up_bbs
+	</select>
+	
+	<!-- 리스트 불러오기 -->
+	<select id="listCall" resultType="com.spring.main.dto.BoardBean">
+	SELECT seq, user_id, subject, content, reg_date, hit, reple
+		FROM (
+			SELECT seq, 
+				user_id, 
+				subject, 
+				content, 
+				reg_date, 
+				hit, 
+				reple, 
+				ROW_NUMBER() OVER(ORDER BY seq DESC) AS rnum 
+				FROM up_bbs)
+		WHERE rnum BETWEEN #{param1} AND #{param2}
+	</select>
+	
+	<select id="keyword" resultType="com.spring.main.dto.BoardBean">
+	SELECT seq, user_id, subject, content, reg_date, hit, reple FROM up_bbs WHERE subject like #{param1}
+	</select>
+	
+	<update id="upHit">
+		UPDATE up_bbs SET hit = hit + 1 WHERE seq=#{param1}
+	</update>
+
+	<!-- 불러오기 -->
+	<select id="outputdetail" resultType="com.spring.main.dto.BoardBean">
+		SELECT * FROM up_bbs WHERE seq = #{param1}
+	</select>
+
+	<!-- 파일 목록 가져오기 -->
+	<select id="outputfileList" resultType="com.spring.main.dto.FilesBean">
+		SELECT * FROM up_bbs WHERE seq = #{idx}
+	</select>
+
+
+	<!-- 리플 리스트 -->
+	<select id="replyList" resultType="com.spring.main.dto.ReplyDto">
+		SELECT * FROM reple WHERE seq = #{param1}
+	</select>
+
+	<!-- 리플 등록 -->
+	<insert id="repleRegist">
+		INSERT INTO reple(idx, replyer,re_content, seq)
+			VALUES(idx_reple.NEXTVAL,#{param1},#{param2},#{param3})
+	</insert>
+
+	<!-- 리플 수 증가 -->
+	<update id="replyUp">
+		UPDATE up_bbs SET reple = reple + 1 WHERE seq=#{param1}
+	</update>
+	
+	<!-- 리플 수 감소 -->
+	<update id="replyDown">
+		UPDATE up_bbs SET reple = reple - 1 WHERE seq=#{param1}
+	</update>
+
+	<!-- 리플삭제 -->
+	<delete id="repleDel">
+		DELETE FROM reple WHERE idx = #{param1}
+	</delete>
+
+ 	<!-- 글 삭제 -->
+ 	<delete id="del">
+ 		DELETE FROM up_bbs WHERE seq = #{param1}
+ 	</delete>
+ 	
+ 	 <!-- 삭제할 파일 추출 -->
+ 	 <select id="delFileName" resultType="String">
+ 	 	SELECT newFile FROM up_bbs WHERE seq=#{param1}
+ 	 </select>
+ 	 
+ 	 <!-- 다운로드 할 원본 파일 제목 -->
+ 	 <select id="downloadName" resultType="String">
+ 	 	SELECT fileName FROM up_bbs WHERE newFile=#{param1}
+ 	 </select>
+	
+	<!-- 수정 -->
+	<update id="update">
+		UPDATE up_bbs SET subject = #{param1}, content=#{param2}
+			WHERE seq=#{param3}
+	</update>
+	
+	<!-- 파일 삭제 내용 반영 -->
+ 	<delete id="fileUpdate">
+ 		DELETE FROM up_bbs WHERE newFile = #{param1} 	
+ 	</delete>
+	<update id="updateFile"> 
+	UPDATE up_bbs SET subject=#{param1},content=#{param2},fileName=#{param3},newFile=#{param4} WHERE seq=#{param5} 
+	</update>
+	<select resultType="com.spring.main.dto.ProjectDto" id="outputlist"> 
+		SELECT t.pro_name, t.seq, p.user_id from team t, pro_bbs p
+			 WHERE t.seq=p.seq AND t.user_id = #{param1} ORDER BY t.seq DESC
+	<!-- SELECT subject from pro_bbs WHERE user_id = #{param1} ORDER BY seq DESC -->
+	</select>
+	
+	<!-- 상세보기 -->
+	
+	<select resultType="com.spring.main.dto.ProjectDto" id="prodetail">
+	 SELECT subject from pro_bbs WHERE subject = #{param1} 
+	 </select>
+	 <select resultType="com.spring.main.dto.ProjectDto" id="prolist"> 
+	  SELECT * FROM project where pro_name=#{param1} order by pro_idx
+	  </select>
+	  
+	  <!-- 저장 -->
+	 <update id="save">
+	 	 UPDATE project SET ${param1}=#{param2} WHERE pro_idx=#{param3} 
+     </update>
+	  <!-- 항목추가 -->
+	  <insert id="add">
+		INSERT INTO project VALUES(idx_project.nextval,#{param1},'2017-01-01','2017-01-01',#{param4},'입력',#{param3},#{param2},'입력',0)
+	  </insert>
+	
+	<!-- pro_bbs추가시 project 기본값 추가 -->
+	 <insert id="projectbasic">
+	 	<selectKey resultType="int" keyProperty="seq" order="BEFORE">
+	        SELECT MAX(seq) FROM pro_bbs
+	    </selectKey>   
+	 	INSERT INTO project VALUES(idx_project.nextval,'입력','2017-01-01','2017-02-01',#{subject},'입력',#{seq},#{teamname},'입력',0)
+	 </insert>
+ 	<!-- 삭제 -->
+	 <delete id="delpro">
+	 	DELETE FROM project WHERE pro_idx=#{param1}
+	 </delete>
+ 
+	 <!-- 차트 -->
+	 <select id="all"  resultType="Integer">
+	 	SELECT count(*) FROM project WHERE seq=#{param1}
+	 </select>
+	 
+	 <select id="finish"  resultType="Integer">
+	 	SELECT count(*) FROM project WHERE ing='완료' AND seq=#{param1}
+	 </select>
+	 <update id="con">
+	 	 UPDATE project SET con=con+1 WHERE name=#{param1} AND pro_name=#{param2} 
+     </update>
+     
+     <select resultType="com.spring.main.dto.ProjectDto" id="conchart"> 
+      	SELECT name,count(*) as con FROM project WHERE pro_name=#{param1} and ing='완료' group by name
+      </select>
+		
+	<!-- 일정차트 -->
+	<select resultType="com.spring.main.dto.ProjectDto" id="gant">
+	 SELECT daystart,dayend,workname FROM project WHERE pro_name=#{param1} order by pro_idx 
+	 </select>
+
+	<select id="monday" resultType="com.spring.main.dto.RptBoardDto">
+		select * from report_bbs where reg_date BETWEEN to_date (#{param1}, 'YYYY-MM-DD') and to_date(#{param2},'YYYY-MM-DD')+1 AND pro_name= #{param3} order by report_seq
+	</select>
+	
+	<!-- 일일주간 한줄달기 -->
+    <insert id="comment">
+        INSERT INTO report_content(idx, seq, user_id, pro_name, content)
+         VALUES(seq_report_content.NEXTVAL, #{param1}, #{param2}, #{param3}, #{param4})
+    </insert>
+    
+    <select id="commentdetail" resultType="com.spring.main.dto.ProjectDto">
+        select  *  from report_content WHERE seq=#{param1} ORDER by idx desc
+    </select>
+    
+    <delete id="commentdel">
+        delete from report_content where idx=#{param1}
+    </delete>
+    
+	<select id="san" resultType="com.spring.main.dto.BoardBean">
+		select seq,subject from (select * from up_bbs order by seq desc) where rownum between 0 and 5
+	</select>
+	
+	<select id="my" resultType="com.spring.main.dto.TeamDto">
+		select seq,pro_name from (select * from team WHERE user_id=#{param1} order by seq desc) where rownum between 0 and 10
+	</select>
+	
+	 <update id="finishpro">
+        UPDATE pro_bbs SET finish ='완료'  where seq =#{param1}
+    </update>
+    
+     <select id="dashall"  resultType="Integer">
+	 	SELECT count(*) FROM pro_bbs WHERE user_id=#{param1}
+	 </select>
+	 
+	 <select id="dashfinish"  resultType="Integer">
+	 	SELECT count(*) FROM pro_bbs WHERE user_id=#{param1} and finish='완료'
+	 </select>
+    
+    <select id="countsan"  resultType="Integer">
+	 	select count(*) from up_bbs
+	 </select>
+	 
+	 <select id="countpro"  resultType="Integer">
+	 	select count(*) from team where user_id=#{param1}
+	 </select>
+</mapper>
